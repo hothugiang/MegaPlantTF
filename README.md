@@ -227,3 +227,22 @@ The next step is to run this file then till the program finish
 ```bash
 python pyrunner
 ```
+
+#### Citation
+If you have used MegaPlantTF in your research, please kindly cite the following publication:
+```bib
+@article{10.1093/bioinformatics/btaf678,
+    author = {Akotenou, Genereux and Hassan, Asmaa H and Mokhtar, Morad M and El Allali, Achraf},
+    title = {MegaPlantTF: a machine learning framework for comprehensive identification and classification of plant transcription factors},
+    journal = {Bioinformatics},
+    volume = {42},
+    number = {1},
+    pages = {btaf678},
+    year = {2025},
+    month = {12},
+    issn = {1367-4811},
+    doi = {10.1093/bioinformatics/btaf678},
+    url = {https://doi.org/10.1093/bioinformatics/btaf678},
+    eprint = {https://academic.oup.com/bioinformatics/article-pdf/42/1/btaf678/66129808/btaf678.pdf},
+}
+```
