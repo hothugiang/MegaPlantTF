@@ -25,6 +25,7 @@
   <br>
 
   <!-- [![DOI:10.1101/2025.03.20.644312](https://zenodo.org/badge/DOI/10.1093/bib/bbaf311.svg)]() -->
+  [![DOI:10.1093/bioinformatics/btaf678](https://zenodo.org/badge/DOI/10.1093/bioinformatics/btaf678.svg)](https://doi.org/10.1093/bioinformatics/btaf678)
   [![Hugging Face](https://img.shields.io/badge/Hugging_Face-MegaPlantTF-orange?style=flat&logo=HuggingFace&logoColor=)](https://huggingface.co/Genereux-akotenou/genomics-tf-prediction)
   [![Conda](https://img.shields.io/badge/Conda-Supported-brightgreen?style=flat&logo=anaconda&logoColor=white)](https://bioinformatics.um6p.ma/MegaPlantTF/documentation)
 </div>
@@ -68,7 +69,7 @@ python -m ipykernel install --user --name MegaPlantTF --display-name "MegaPlantT
 
 ![Step 2 - Use MegaPlantTF for TF prediction in plant](https://img.shields.io/badge/Step%202-Use%20MegaPlantTF%20for%20TF%20prediction%20in%20plant-0b75b6?style=for-the-badge&logo=&logoColor=white)
 
-### 1. Running online Webserver
+#### 1. Running online Webserver
 <!-- <div style="border-left: 5px solid #ddd; padding: 2px 15px; background-color: #f6f8fa;">
 <h5>📦 Quick Start</h5>
 The easiest way to use **MegaPlantTF** is through the online web server available at: <a href="https://bioinformatics.um6p.ma/MegaPlantTF">https://bioinformatics.um6p.ma/MegaPlantTF</a>. You can also watch a short demo showing how it works below:
@@ -82,7 +83,7 @@ The easiest way to use **MegaPlantTF** is through the online web server availabl
 > <a href="https://genereux-akotenou.github.io/assets/images/mega-plant-tf-demo.mp4" target="_blank"><img src="./demo.png" alt="Watch the video" /></a>
 
 
-### 1. Running locally
+#### 2. Running locally
 
 Before proceeding, make sure you’ve completed **Step 1** and correctly set up the **MegaPlantTF conda environment**.  
 In this step, you’ll download the pretrained model weights, copy them to the right folders, and start the prediction workflow.
