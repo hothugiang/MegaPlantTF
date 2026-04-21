@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>benchmark</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="benchmark_files/libs/clipboard/clipboard.min.js"></script>
+<script src="benchmark_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="benchmark_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="benchmark_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="benchmark_files/libs/quarto-html/popper.min.js"></script>
+<script src="benchmark_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="benchmark_files/libs/quarto-html/anchor.min.js"></script>
+<link href="benchmark_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="benchmark_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="benchmark_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="benchmark_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="benchmark_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="benchmark-classifier-notebook03-classifier_benchmark.py" class="level1">
+<h1>Benchmark classifier: <code>notebook/03-classifier_benchmark.py</code></h1>
+<p>File nay dung de so sanh cac classifier co dien voi feed-forward neural network tren bai toan <strong>binary one-vs-rest</strong> cho tung ho transcription factor (TF).</p>
+<p>Mac dinh script chay theo split 80/20 da co san trong repo, tuong ung protocol cua paper:</p>
+<pre class="text"><code>train: data/mix_data/trainset/&lt;family&gt;.csv
+test:  data/mix_data/testset/&lt;family&gt;.csv</code></pre>
+<p>Moi file <code>&lt;family&gt;.csv</code> co:</p>
+<ul>
+<li><code>sequence</code>: protein sequence.</li>
+<li><code>class</code>: nhan binary, <code>1</code> la family dang xet, <code>0</code> la cac family con lai.</li>
+</ul>
+<!-- ## Cach chay khuyen dung
+
+Chay tu thu muc root:
+
+```powershell
+cd "D:\University\Master\sem 2\Tin sinh\MegaPlantTF"
+conda activate MegaPlantTF
+```
+
+Chay cac baseline voi `k=3`:
+
+```powershell
+python -u notebook/03-classifier_benchmark.py --all-families --k 3 --models knn,xgb,random_forest,adaboost,gaussian_nb,svc_linear,svc_rbf --n-jobs 1
+```
+
+Chay FNN pretrained, khong train lai:
+
+```powershell
+$env:TF_ENABLE_ONEDNN_OPTS="0"
+$env:OMP_NUM_THREADS="1"
+$env:TF_NUM_INTRAOP_THREADS="1"
+$env:TF_NUM_INTEROP_THREADS="1"
+
+python -u notebook/03-classifier_benchmark.py --all-families --k 3 --models fnn_pretrained --output test/metrics/model_benchmark/binary_classifier_benchmark_fnn_pretrained_k3.csv --summary-output test/metrics/model_benchmark/binary_classifier_benchmark_summary_fnn_pretrained_k3.csv --comparison-output test/metrics/model_benchmark/binary_classifier_benchmark_comparison_fnn_pretrained_k3.csv
+``` -->
+<section id="tien-xu-ly" class="level2">
+<h2 class="anchored" data-anchor-id="tien-xu-ly">Tien xu ly</h2>
+<p>Voi moi family va moi gia tri <code>k</code>, script lam:</p>
+<ol type="1">
+<li>Doc train/test theo <code>paper_split</code>.</li>
+<li>Tinh k-mer frequency tu protein sequence.</li>
+<li>Fit <code>DictVectorizer</code> tren train, transform test.</li>
+<li>Chon dac trung bang ANOVA <code>SelectKBest(f_classif)</code>.</li>
+<li>Fit baseline model tren train va danh gia tren test.</li>
+</ol>
+<p>Rieng <code>fnn_pretrained</code> khong fit tren train. Model nay load weights co san va chi predict tren test.</p>
+<p>Mac dinh:</p>
+<ul>
+<li><code>--k 3</code></li>
+<li><code>--max-rows 0</code>: dung full data.</li>
+<li><code>--random-state 42</code></li>
+<li><code>--repeats 1</code></li>
+<li><code>--k345-features 1000</code></li>
+</ul>
+<p>Seed anh huong toi sampling va cac model co <code>random_state</code>.</p>
+</section>
+<section id="model-va-hyperparameter" class="level2">
+<h2 class="anchored" data-anchor-id="model-va-hyperparameter">Model va hyperparameter</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Ten trong script</th>
+<th>Model</th>
+<th>Hyperparameter dat thu cong</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>knn</code></td>
+<td><code>KNeighborsClassifier</code></td>
+<td><code>n_neighbors=5</code></td>
+</tr>
+<tr class="even">
+<td><code>xgb</code></td>
+<td><code>XGBClassifier</code></td>
+<td><code>n_estimators=200</code>, <code>max_depth=6</code>, <code>learning_rate=0.05</code>, <code>subsample=0.9</code>, <code>colsample_bytree=0.9</code>, <code>eval_metric="logloss"</code>, <code>random_state</code>, <code>n_jobs</code></td>
+</tr>
+<tr class="odd">
+<td><code>random_forest</code></td>
+<td><code>RandomForestClassifier</code></td>
+<td><code>n_estimators=200</code>, <code>random_state</code>, <code>n_jobs</code></td>
+</tr>
+<tr class="even">
+<td><code>adaboost</code></td>
+<td><code>AdaBoostClassifier</code></td>
+<td><code>n_estimators=200</code>, <code>random_state</code></td>
+</tr>
+<tr class="odd">
+<td><code>gaussian_nb</code></td>
+<td><code>GaussianNB</code></td>
+<td>default</td>
+</tr>
+<tr class="even">
+<td><code>svc_linear</code></td>
+<td><code>SVC</code></td>
+<td><code>kernel="linear"</code>, <code>random_state</code></td>
+</tr>
+<tr class="odd">
+<td><code>svc_rbf</code></td>
+<td><code>SVC</code></td>
+<td><code>kernel="rbf"</code>, <code>random_state</code></td>
+</tr>
+<tr class="even">
+<td><code>fnn_pretrained</code></td>
+<td>Keras feed-forward neural network</td>
+<td>load tu <code>models/Binary-Classifier/&lt;family&gt;/FEEDFORWARD_k{k}.keras</code></td>
+</tr>
+</tbody>
+</table>
+<p>Nhung tham so khac dung default cua thu vien tuong ung.</p>
+</section>
+<section id="fnn-pretrained" class="level2">
+<h2 class="anchored" data-anchor-id="fnn-pretrained">FNN pretrained</h2>
+<p><code>fnn_pretrained</code> khong train lai. No load model <code>.keras</code> da co san va dung <code>features_mask</code> trong <code>meta.json</code> de lay dung 1000 features tu vector k-mer.</p>
+<p>Nguon file:</p>
+<pre class="text"><code>models/Binary-Classifier/&lt;family&gt;/FEEDFORWARD_k3.keras
+models/Binary-Classifier/&lt;family&gt;/meta.json</code></pre>
+<p>Prediction threshold:</p>
+<pre class="text"><code>0.5</code></pre>
+<p>Can ghi ro day la <strong>pretrained FNN</strong>, khong phai FNN duoc train lai cung baseline.</p>
+</section>
+<section id="co-optimize-hyperparameter-khong" class="level2">
+<h2 class="anchored" data-anchor-id="co-optimize-hyperparameter-khong">Co optimize hyperparameter khong?</h2>
+<p>Khong.</p>
+<p>Script khong dung:</p>
+<ul>
+<li>grid search</li>
+<li>random search</li>
+<li>Bayesian optimization</li>
+<li>cross-validation de chon hyperparameter</li>
+<li>tuning rieng cho tung family</li>
+</ul>
+<p>Vi vay ket qua la benchmark voi <strong>mot bo hyperparameter co dinh</strong>, khong phai so sanh sau khi toi uu tung model.</p>
+</section>
+<section id="output" class="level2">
+<h2 class="anchored" data-anchor-id="output">Output</h2>
+<p>Mac dinh:</p>
+<pre class="text"><code>test/metrics/model_benchmark/binary_classifier_benchmark.csv
+test/metrics/model_benchmark/binary_classifier_benchmark_summary.csv
+test/metrics/model_benchmark/binary_classifier_benchmark_fnn_comparison.csv</code></pre>
+<p>Y nghia:</p>
+<ul>
+<li><code>binary_classifier_benchmark.csv</code>: chi tiet tung <code>repeat + seed + data_mode + family + k + model</code>.</li>
+<li><code>binary_classifier_benchmark_summary.csv</code>: trung binh theo <code>k + model</code>.</li>
+<li><code>binary_classifier_benchmark_fnn_comparison.csv</code>: so sanh FNN pretrained voi baseline neu cung nam trong mot file ket qua.</li>
+</ul>
+<p>Co the doi output:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="op">--</span>output path<span class="op">/</span>to<span class="op">/</span>detail<span class="op">.</span><span class="fu">csv</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="op">--</span>summary-output path<span class="op">/</span>to<span class="op">/</span>summary<span class="op">.</span><span class="fu">csv</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="op">--</span>comparison-output path<span class="op">/</span>to<span class="op">/</span>comparison<span class="op">.</span><span class="fu">csv</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="luu-y-khi-dien-giai-ket-qua" class="level2">
+<h2 class="anchored" data-anchor-id="luu-y-khi-dien-giai-ket-qua">Luu y khi dien giai ket qua</h2>
+<ul>
+<li>Neu so sanh baseline voi <code>fnn_pretrained</code>, day la so sanh baseline train lai voi FNN pretrained co san trong repo.</li>
+<li><code>fnn_pretrained</code> van danh gia tren cung test split, nen co gia tri tham khao tot.</li>
+<li>Tuy nhien, no khong hoan toan cong bang nhu train lai FNN tu dau voi cung seed va cung dieu kien.</li>
+</ul>
+</section>
+<section id="nhan-xet-ket-qua-full-benchmark" class="level2">
+<h2 class="anchored" data-anchor-id="nhan-xet-ket-qua-full-benchmark">Nhan xet ket qua full benchmark</h2>
+<p>File ket qua duoc doc tu:</p>
+<pre class="text"><code>test/metrics/model_benchmark/binary_classifier_benchmark_full.csv</code></pre>
+<p>Ket qua hop le gom 58 family, <code>k=3</code>, va 7 model:</p>
+<pre class="text"><code>knn, xgb, random_forest, adaboost, gaussian_nb, svc_linear, svc_rbf, fnn_pretrained</code></pre>
+<p>Bang trung binh theo model:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th style="text-align: right;">Accuracy</th>
+<th style="text-align: right;">Precision</th>
+<th style="text-align: right;">Recall</th>
+<th style="text-align: right;">F1</th>
+<th style="text-align: right;">Avg train/load sec</th>
+<th style="text-align: right;">Avg predict sec</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>xgb</code></td>
+<td style="text-align: right;">0.9902</td>
+<td style="text-align: right;">0.9960</td>
+<td style="text-align: right;">0.9846</td>
+<td style="text-align: right;">0.9902</td>
+<td style="text-align: right;">16.45</td>
+<td style="text-align: right;">0.03</td>
+</tr>
+<tr class="even">
+<td><code>random_forest</code></td>
+<td style="text-align: right;">0.9897</td>
+<td style="text-align: right;">0.9977</td>
+<td style="text-align: right;">0.9818</td>
+<td style="text-align: right;">0.9896</td>
+<td style="text-align: right;">15.00</td>
+<td style="text-align: right;">0.09</td>
+</tr>
+<tr class="odd">
+<td><code>adaboost</code></td>
+<td style="text-align: right;">0.9884</td>
+<td style="text-align: right;">0.9921</td>
+<td style="text-align: right;">0.9848</td>
+<td style="text-align: right;">0.9884</td>
+<td style="text-align: right;">16.54</td>
+<td style="text-align: right;">0.20</td>
+</tr>
+<tr class="even">
+<td><code>svc_rbf</code></td>
+<td style="text-align: right;">0.9856</td>
+<td style="text-align: right;">0.9958</td>
+<td style="text-align: right;">0.9755</td>
+<td style="text-align: right;">0.9855</td>
+<td style="text-align: right;">27.80</td>
+<td style="text-align: right;">3.36</td>
+</tr>
+<tr class="odd">
+<td><code>fnn_pretrained</code></td>
+<td style="text-align: right;">0.9868</td>
+<td style="text-align: right;">0.9950</td>
+<td style="text-align: right;">0.9784</td>
+<td style="text-align: right;">0.9847</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.19</td>
+</tr>
+<tr class="even">
+<td><code>knn</code></td>
+<td style="text-align: right;">0.9548</td>
+<td style="text-align: right;">0.9625</td>
+<td style="text-align: right;">0.9532</td>
+<td style="text-align: right;">0.9560</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.60</td>
+</tr>
+<tr class="odd">
+<td><code>svc_linear</code></td>
+<td style="text-align: right;">0.7087</td>
+<td style="text-align: right;">0.7728</td>
+<td style="text-align: right;">0.8179</td>
+<td style="text-align: right;">0.7411</td>
+<td style="text-align: right;">92.56</td>
+<td style="text-align: right;">22.21</td>
+</tr>
+</tbody>
+</table>
+<p>So sanh truc tiep theo F1 giua <code>fnn_pretrained</code> va tung baseline tren cung family:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Baseline</th>
+<th style="text-align: right;">Mean delta F1 (<code>fnn_pretrained</code> - baseline)</th>
+<th style="text-align: right;">Wins</th>
+<th style="text-align: right;">Ties</th>
+<th style="text-align: right;">Losses</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>svc_linear</code></td>
+<td style="text-align: right;">+0.2436</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td><code>knn</code></td>
+<td style="text-align: right;">+0.0287</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="odd">
+<td><code>svc_rbf</code></td>
+<td style="text-align: right;">-0.0007</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr class="even">
+<td><code>adaboost</code></td>
+<td style="text-align: right;">-0.0037</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="odd">
+<td><code>random_forest</code></td>
+<td style="text-align: right;">-0.0049</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td><code>xgb</code></td>
+<td style="text-align: right;">-0.0055</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+</tr>
+</tbody>
+</table>
+<p>Nhan xet chinh:</p>
+<ul>
+<li><code>fnn_pretrained</code> vuot ro <code>svc_linear</code> va <code>knn</code>. F1 trung binh cao hon <code>svc_linear</code> khoang 0.24 va cao hon <code>knn</code> khoang 0.03.</li>
+<li>So voi nhom model manh hon nhu <code>xgb</code>, <code>random_forest</code>, <code>adaboost</code>, va <code>svc_rbf</code>, <code>fnn_pretrained</code> rat canh tranh. Trung binh F1 chi thap hon khoang 0.0007 den 0.0055.</li>
+<li><code>fnn_pretrained</code> thang tren nhieu family hon so voi tung baseline manh: thang <code>xgb</code> o 43/58 family, thang <code>random_forest</code> o 44/58 family, thang <code>adaboost</code> o 43/58 family, va thang <code>svc_rbf</code> o 52/58 family.</li>
+<li>Mot vai family lam giam F1 trung binh cua <code>fnn_pretrained</code>, dac biet <code>DBB</code> va <code>EIL</code>. Vi cac outlier nay, <code>xgb</code>, <code>random_forest</code>, va <code>adaboost</code> co F1 trung binh cao hon mot chut.</li>
+<li>Ve toc do, <code>fnn_pretrained</code> khong train lai, nen cot <code>train_time_sec</code> cua model nay nen hieu la thoi gian load model. Thoi gian load/predict cua no rat nho so voi cac model phai train lai, dac biet la <code>svc_linear</code>.</li>
+</ul>
+<p>Ket luan:</p>
+<p><code>fnn_pretrained</code> khong dat F1 trung binh cao nhat trong file ket qua nay; <code>xgb</code> dung dau theo F1 trung binh. Tuy vay, <code>fnn_pretrained</code> van dat hieu nang rat cao, on dinh tren phan lon family, vuot xa <code>knn</code> va <code>svc_linear</code>, va canh tranh sat voi cac ensemble models. Ket qua nay ung ho viec dung FNN pretrained cua MegaPlantTF nhu mot mo hinh manh va thuc dung, nhung neu ket luan theo benchmark cong bang nghiem ngat thi can ghi ro rang FNN nay la pretrained, khong duoc train lai trong cung dieu kien voi cac baseline.</p>
+<!-- quarto render benchmark.qmd --to pdf -->
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

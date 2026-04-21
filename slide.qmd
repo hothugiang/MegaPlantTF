@@ -1,0 +1,196 @@
+﻿---
+title: "Classification of Plant Protein Transcription Factors"
+subtitle: "Phân loại yếu tố phiên mã thực vật bằng học máy"
+format:
+  beamer:
+    theme: Madrid
+    fontsize: 11pt
+---
+
+## Mục lục
+
+1. Giới thiệu  
+2. Bài toán đặt ra  
+3. Bộ dữ liệu  
+4. Trích xuất & chọn đặc trưng  
+5. Mô hình học máy, học sâu  
+6. Kết quả thực nghiệm  
+
+---
+
+## 1. Giới thiệu
+
+### Yếu tố phiên mã (TF) là gì?
+
+- Là protein điều hòa biểu hiện gen  
+- Gắn vào DNA tại các vị trí đặc hiệu  
+- Kiểm soát quá trình phiên mã  
+
+- Vai trò:
+    - Phát triển thực vật (phôi, hạt)
+    - Đáp ứng stress (sinh học & môi trường)
+    - Điều hòa trao đổi chất  
+
+- TF gồm:
+    - DNA-binding domain  
+    - Regulatory domain  
+    - Nuclear localization signal  
+
+> TF là thành phần cốt lõi trong mạng điều hòa gen
+
+---
+
+## 2. Bài toán đặt ra
+
+### Mục tiêu
+
+- Phân loại protein:
+  - TF vs Non-TF  
+  - Phân loại theo họ TF  
+
+### Thách thức
+
+- Đa dạng cấu trúc protein  
+- Nhiều họ TF hiếm  
+- Dữ liệu lớn (genome-scale)  
+- Phương pháp truyền thống (BLAST):
+  - Tốn thời gian  
+  - Hiệu quả hạn chế  
+
+$\Rightarrow$ Bài toán: Xây dựng mô hình học máy chính xác & mở rộng tốt  
+
+---
+
+## 3. Bộ dữ liệu
+
+### Nguồn dữ liệu
+
+- Protein sequence từ genome thực vật  
+- Các cơ sở dữ liệu TF (PlantTFDB, iTAK)
+
+### Đặc điểm
+
+- Dữ liệu dạng chuỗi amino acid  
+- Gồm:
+  - TF proteins  
+  - Non-TF proteins  
+
+### Nhãn
+
+- Nhị phân: TF / Non-TF  
+- Đa lớp: các họ TF  
+
+---
+
+## 4. Trích xuất & chọn đặc trưng
+
+### 1. K-mer encoding
+
+- Chia chuỗi protein thành các đoạn k-mer  
+- Biến thành vector đặc trưng  
+
+- Ưu điểm:
+    - Đơn giản  
+    - Hiệu quả cao  
+
+### 2. Feature representation
+
+- Biểu diễn số hóa chuỗi protein  
+- Dùng làm input cho mô hình  
+
+### 3. Feature selection
+
+- Giảm chiều dữ liệu  
+- Loại bỏ nhiễu  
+- Tăng hiệu suất mô hình  
+
+$\Rightarrow$ Vai trò quan trọng trong phân loại protein  
+
+---
+
+## 5. Mô hình học máy, học sâu
+
+Kiến trúc MegaPlantTF: 2 giai đoạn
+
+### Giai đoạn 1:
+- Deep Feedforward Neural Network  
+- Phân loại TF vs Non-TF  
+
+
+### Giai đoạn 2:
+- Stacking Ensemble Classifier  
+- Phân loại họ TF  
+
+### Thành phần:
+- Base learners  
+- Meta-classifier  
+
+---
+
+## 5. Mô hình học máy, học sâu
+
+### Điểm nổi bật
+
+- Kết hợp:
+  - Deep learning  
+  - Ensemble learning  
+
+- Tăng:
+  - Độ chính xác  
+  - Khả năng tổng quát  
+
+$\Rightarrow$ Framework hai tầng giúp cải thiện hiệu suất đáng kể 
+
+---
+
+## 6. Kết quả thực nghiệm
+
+### Hiệu suất
+
+- Accuracy cao (~99%)  
+- Robust với dữ liệu lớn  
+
+### So sánh
+
+- Tốt hơn:
+  - BLAST  
+  - Phương pháp truyền thống  
+
+### Case study
+
+- Áp dụng trên Sorghum bicolor  
+- Phân loại genome-scale thành công  
+
+---
+
+## 6. Kết quả thực nghiệm
+
+### Kết luận
+
+- MegaPlantTF:
+  - Hiệu quả  
+  - Chính xác  
+  - Mở rộng tốt  
+
+- Ứng dụng:
+    - Phân tích genome  
+    - Nghiên cứu sinh học thực vật  
+    - Bioinformatics  
+
+---
+
+## Kết luận chung
+
+- TF rất quan trọng trong điều hòa gen  
+- Bài toán phân loại TF phức tạp  
+- Học máy + học sâu là hướng tiếp cận hiệu quả  
+
+$\Rightarrow$ MegaPlantTF là bước tiến mới trong lĩnh vực này  
+
+---
+
+## Tài liệu tham khảo
+
+- Akotenou et al., 2026. Bioinformatics  
+- MegaPlantTF framework  
+- PlantTFDB, iTAK  

@@ -1,0 +1,195 @@
+# Benchmark classifier: `notebook/03-classifier_benchmark.py`
+
+File nay dung de so sanh cac classifier co dien voi feed-forward neural network tren bai toan **binary one-vs-rest** cho tung ho transcription factor (TF).
+
+Mac dinh script chay theo split 80/20 da co san trong repo, tuong ung protocol cua paper:
+
+```text
+train: data/mix_data/trainset/<family>.csv
+test:  data/mix_data/testset/<family>.csv
+```
+
+Moi file `<family>.csv` co:
+
+- `sequence`: protein sequence.
+- `class`: nhan binary, `1` la family dang xet, `0` la cac family con lai.
+
+<!-- ## Cach chay khuyen dung
+
+Chay tu thu muc root:
+
+```powershell
+cd "D:\University\Master\sem 2\Tin sinh\MegaPlantTF"
+conda activate MegaPlantTF
+```
+
+Chay cac baseline voi `k=3`:
+
+```powershell
+python -u notebook/03-classifier_benchmark.py --all-families --k 3 --models knn,xgb,random_forest,adaboost,gaussian_nb,svc_linear,svc_rbf --n-jobs 1
+```
+
+Chay FNN pretrained, khong train lai:
+
+```powershell
+$env:TF_ENABLE_ONEDNN_OPTS="0"
+$env:OMP_NUM_THREADS="1"
+$env:TF_NUM_INTRAOP_THREADS="1"
+$env:TF_NUM_INTEROP_THREADS="1"
+
+python -u notebook/03-classifier_benchmark.py --all-families --k 3 --models fnn_pretrained --output test/metrics/model_benchmark/binary_classifier_benchmark_fnn_pretrained_k3.csv --summary-output test/metrics/model_benchmark/binary_classifier_benchmark_summary_fnn_pretrained_k3.csv --comparison-output test/metrics/model_benchmark/binary_classifier_benchmark_comparison_fnn_pretrained_k3.csv
+``` -->
+
+## Tien xu ly
+
+Voi moi family va moi gia tri `k`, script lam:
+
+1. Doc train/test theo `paper_split`.
+2. Tinh k-mer frequency tu protein sequence.
+3. Fit `DictVectorizer` tren train, transform test.
+4. Chon dac trung bang ANOVA `SelectKBest(f_classif)`.
+5. Fit baseline model tren train va danh gia tren test.
+
+Rieng `fnn_pretrained` khong fit tren train. Model nay load weights co san va chi predict tren test.
+
+Mac dinh:
+
+- `--k 3`
+- `--max-rows 0`: dung full data.
+- `--random-state 42`
+- `--repeats 1`
+- `--k345-features 1000`
+
+Seed anh huong toi sampling va cac model co `random_state`.
+
+## Model va hyperparameter
+
+| Ten trong script | Model | Hyperparameter dat thu cong |
+|---|---|---|
+| `knn` | `KNeighborsClassifier` | `n_neighbors=5` |
+| `xgb` | `XGBClassifier` | `n_estimators=200`, `max_depth=6`, `learning_rate=0.05`, `subsample=0.9`, `colsample_bytree=0.9`, `eval_metric="logloss"`, `random_state`, `n_jobs` |
+| `random_forest` | `RandomForestClassifier` | `n_estimators=200`, `random_state`, `n_jobs` |
+| `adaboost` | `AdaBoostClassifier` | `n_estimators=200`, `random_state` |
+| `gaussian_nb` | `GaussianNB` | default |
+| `svc_linear` | `SVC` | `kernel="linear"`, `random_state` |
+| `svc_rbf` | `SVC` | `kernel="rbf"`, `random_state` |
+| `fnn_pretrained` | Keras feed-forward neural network | load tu `models/Binary-Classifier/<family>/FEEDFORWARD_k{k}.keras` |
+
+Nhung tham so khac dung default cua thu vien tuong ung.
+
+## FNN pretrained
+
+`fnn_pretrained` khong train lai. No load model `.keras` da co san va dung `features_mask` trong `meta.json` de lay dung 1000 features tu vector k-mer.
+
+Nguon file:
+
+```text
+models/Binary-Classifier/<family>/FEEDFORWARD_k3.keras
+models/Binary-Classifier/<family>/meta.json
+```
+
+Prediction threshold:
+
+```text
+0.5
+```
+
+Can ghi ro day la **pretrained FNN**, khong phai FNN duoc train lai cung baseline.
+
+## Co optimize hyperparameter khong?
+
+Khong.
+
+Script khong dung:
+
+- grid search
+- random search
+- Bayesian optimization
+- cross-validation de chon hyperparameter
+- tuning rieng cho tung family
+
+Vi vay ket qua la benchmark voi **mot bo hyperparameter co dinh**, khong phai so sanh sau khi toi uu tung model.
+
+## Output
+
+Mac dinh:
+
+```text
+test/metrics/model_benchmark/binary_classifier_benchmark.csv
+test/metrics/model_benchmark/binary_classifier_benchmark_summary.csv
+test/metrics/model_benchmark/binary_classifier_benchmark_fnn_comparison.csv
+```
+
+Y nghia:
+
+- `binary_classifier_benchmark.csv`: chi tiet tung `repeat + seed + data_mode + family + k + model`.
+- `binary_classifier_benchmark_summary.csv`: trung binh theo `k + model`.
+- `binary_classifier_benchmark_fnn_comparison.csv`: so sanh FNN pretrained voi baseline neu cung nam trong mot file ket qua.
+
+Co the doi output:
+
+```powershell
+--output path/to/detail.csv
+--summary-output path/to/summary.csv
+--comparison-output path/to/comparison.csv
+```
+
+## Luu y khi dien giai ket qua
+
+- Neu so sanh baseline voi `fnn_pretrained`, day la so sanh baseline train lai voi FNN pretrained co san trong repo.
+- `fnn_pretrained` van danh gia tren cung test split, nen co gia tri tham khao tot.
+- Tuy nhien, no khong hoan toan cong bang nhu train lai FNN tu dau voi cung seed va cung dieu kien.
+
+
+
+
+## Nhan xet ket qua full benchmark
+
+File ket qua duoc doc tu:
+
+```text
+test/metrics/model_benchmark/binary_classifier_benchmark_full.csv
+```
+
+Ket qua hop le gom 58 family, `k=3`, va 7 model:
+
+```text
+knn, xgb, random_forest, adaboost, gaussian_nb, svc_linear, svc_rbf, fnn_pretrained
+```
+
+Bang trung binh theo model:
+
+| Model | Accuracy | Precision | Recall | F1 | Avg train/load sec | Avg predict sec |
+|---|---:|---:|---:|---:|---:|---:|
+| `xgb` | 0.9902 | 0.9960 | 0.9846 | 0.9902 | 16.45 | 0.03 |
+| `random_forest` | 0.9897 | 0.9977 | 0.9818 | 0.9896 | 15.00 | 0.09 |
+| `adaboost` | 0.9884 | 0.9921 | 0.9848 | 0.9884 | 16.54 | 0.20 |
+| `svc_rbf` | 0.9856 | 0.9958 | 0.9755 | 0.9855 | 27.80 | 3.36 |
+| `fnn_pretrained` | 0.9868 | 0.9950 | 0.9784 | 0.9847 | 0.08 | 0.19 |
+| `knn` | 0.9548 | 0.9625 | 0.9532 | 0.9560 | 0.00 | 2.60 |
+| `svc_linear` | 0.7087 | 0.7728 | 0.8179 | 0.7411 | 92.56 | 22.21 |
+
+So sanh truc tiep theo F1 giua `fnn_pretrained` va tung baseline tren cung family:
+
+| Baseline | Mean delta F1 (`fnn_pretrained` - baseline) | Wins | Ties | Losses |
+|---|---:|---:|---:|---:|
+| `svc_linear` | +0.2436 | 57 | 0 | 1 |
+| `knn` | +0.0287 | 55 | 1 | 2 |
+| `svc_rbf` | -0.0007 | 52 | 3 | 3 |
+| `adaboost` | -0.0037 | 43 | 8 | 7 |
+| `random_forest` | -0.0049 | 44 | 7 | 7 |
+| `xgb` | -0.0055 | 43 | 10 | 5 |
+
+Nhan xet chinh:
+
+- `fnn_pretrained` vuot ro `svc_linear` va `knn`. F1 trung binh cao hon `svc_linear` khoang 0.24 va cao hon `knn` khoang 0.03.
+- So voi nhom model manh hon nhu `xgb`, `random_forest`, `adaboost`, va `svc_rbf`, `fnn_pretrained` rat canh tranh. Trung binh F1 chi thap hon khoang 0.0007 den 0.0055.
+- `fnn_pretrained` thang tren nhieu family hon so voi tung baseline manh: thang `xgb` o 43/58 family, thang `random_forest` o 44/58 family, thang `adaboost` o 43/58 family, va thang `svc_rbf` o 52/58 family.
+- Mot vai family lam giam F1 trung binh cua `fnn_pretrained`, dac biet `DBB` va `EIL`. Vi cac outlier nay, `xgb`, `random_forest`, va `adaboost` co F1 trung binh cao hon mot chut.
+- Ve toc do, `fnn_pretrained` khong train lai, nen cot `train_time_sec` cua model nay nen hieu la thoi gian load model. Thoi gian load/predict cua no rat nho so voi cac model phai train lai, dac biet la `svc_linear`.
+
+Ket luan:
+
+`fnn_pretrained` khong dat F1 trung binh cao nhat trong file ket qua nay; `xgb` dung dau theo F1 trung binh. Tuy vay, `fnn_pretrained` van dat hieu nang rat cao, on dinh tren phan lon family, vuot xa `knn` va `svc_linear`, va canh tranh sat voi cac ensemble models. Ket qua nay ung ho viec dung FNN pretrained cua MegaPlantTF nhu mot mo hinh manh va thuc dung, nhung neu ket luan theo benchmark cong bang nghiem ngat thi can ghi ro rang FNN nay la pretrained, khong duoc train lai trong cung dieu kien voi cac baseline.
+
+<!-- quarto render benchmark.qmd --to pdf -->
