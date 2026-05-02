@@ -29,6 +29,12 @@ Chay cac baseline voi `k=3`:
 python -u notebook/03-classifier_benchmark.py --all-families --k 3 --models knn,xgb,random_forest,adaboost,gaussian_nb,svc_linear,svc_rbf --n-jobs 1
 ```
 
+Chay rieng CatBoost:
+
+```powershell
+python -u notebook/03-classifier_benchmark.py --all-families --k 3 --models catboost --n-jobs 1
+```
+
 Chay FNN pretrained, khong train lai:
 
 ```powershell
@@ -68,6 +74,7 @@ Seed anh huong toi sampling va cac model co `random_state`.
 |---|---|---|
 | `knn` | `KNeighborsClassifier` | `n_neighbors=5` |
 | `xgb` | `XGBClassifier` | `n_estimators=200`, `max_depth=6`, `learning_rate=0.05`, `subsample=0.9`, `colsample_bytree=0.9`, `eval_metric="logloss"`, `random_state`, `n_jobs` |
+| `catboost` | `CatBoostClassifier` | `iterations=200`, `depth=6`, `learning_rate=0.05`, `loss_function="Logloss"`, `eval_metric="F1"`, `random_seed`, `verbose=False`, `allow_writing_files=False` |
 | `random_forest` | `RandomForestClassifier` | `n_estimators=200`, `random_state`, `n_jobs` |
 | `adaboost` | `AdaBoostClassifier` | `n_estimators=200`, `random_state` |
 | `gaussian_nb` | `GaussianNB` | default |
@@ -76,6 +83,38 @@ Seed anh huong toi sampling va cac model co `random_state`.
 | `fnn_pretrained` | Keras feed-forward neural network | load tu `models/Binary-Classifier/<family>/FEEDFORWARD_k{k}.keras` |
 
 Nhung tham so khac dung default cua thu vien tuong ung.
+
+## CatBoost
+
+`catboost` la model duoc train lai tu dau trong benchmark, giong nhu `xgb`, `random_forest`, `adaboost`, `svc_*`.
+
+Khoi tao hien tai trong script:
+
+```python
+CatBoostClassifier(
+    iterations=200,
+    depth=6,
+    learning_rate=0.05,
+    loss_function="Logloss",
+    eval_metric="F1",
+    random_seed=random_state,
+    verbose=False,
+    allow_writing_files=False,
+)
+```
+
+Y nghia:
+
+- `iterations=200`: so boosting rounds.
+- `depth=6`: do sau cua cay.
+- `learning_rate=0.05`: toc do hoc.
+- `loss_function="Logloss"`: objective cho binary classification.
+- `eval_metric="F1"`: metric theo doi trong qua trinh hoc.
+- `random_seed=random_state`: dong bo seed voi cac model khac.
+- `verbose=False`: tat log train.
+- `allow_writing_files=False`: khong tao cac file phu cua CatBoost trong workspace.
+
+Script hien tai khong tune hyperparameter cho CatBoost. Day la bo tham so co dinh de benchmark, khong phai bo tham so toi uu.
 
 ## FNN pretrained
 
@@ -109,6 +148,8 @@ Script khong dung:
 - tuning rieng cho tung family
 
 Vi vay ket qua la benchmark voi **mot bo hyperparameter co dinh**, khong phai so sanh sau khi toi uu tung model.
+
+Luu y rieng voi `catboost`: env can cai package `catboost` truoc khi chay, neu khong script se bao loi `catboost is not installed in this environment`.
 
 ## Output
 

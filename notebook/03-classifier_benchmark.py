@@ -45,7 +45,7 @@ DEFAULT_MODELS = [
     "svc_rbf",
     "fnn",
 ]
-ALL_MODELS = DEFAULT_MODELS + ["gaussian_process"]
+ALL_MODELS = DEFAULT_MODELS + ["gaussian_process", "catboost"]
 ALL_MODELS = ALL_MODELS + ["fnn_pretrained"]
 
 
@@ -175,6 +175,21 @@ def build_sklearn_model(name: str, random_state: int, n_jobs: int):
         return SVC(kernel="rbf", random_state=random_state)
     if name == "gaussian_process":
         return GaussianProcessClassifier(kernel=1.0 * RBF(1.0), random_state=random_state)
+    if name == "catboost":
+        try:
+            from catboost import CatBoostClassifier
+        except ImportError as exc:
+            raise RuntimeError("catboost is not installed in this environment") from exc
+        return CatBoostClassifier(
+            iterations=200,
+            depth=6,
+            learning_rate=0.05,
+            loss_function="Logloss",
+            eval_metric="F1",
+            random_seed=random_state,
+            verbose=False,
+            allow_writing_files=False,
+        )
     if name == "xgb":
         try:
             from xgboost import XGBClassifier
